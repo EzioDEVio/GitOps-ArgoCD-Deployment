@@ -1,4 +1,4 @@
-name: Auto-Update Deployment on Image Change
+name: ArgoCD Auto-Update Deployment on Image Change
 
 on:
   schedule:
