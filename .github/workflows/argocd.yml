@@ -1,30 +1,37 @@
 
-name: Update Kubernetes Manifests
+name: Auto-Update Deployment on Image Change
 
 on:
-  workflow_dispatch:
-    inputs:
-      new_image_tag:
-        description: 'The new Docker image tag'
-        required: true
+  schedule:
+    # Check every hour; adjust as necessary
+    - cron: '0 * * * *'
 
 jobs:
-  update-manifest:
+  update-deployment:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+      
+      - name: Get latest image digest from Docker Hub
+        id: dockerhub
+        run: |
+          DIGEST=$(curl -s "https://hub.docker.com/v2/repositories/ezio22/argocd-node-app/tags/latest" | jq -r '.images[] | select(.architecture=="amd64").digest')
+          echo "::set-output name=digest::$DIGEST"
+      
+      - name: Update the Deployment file if new image is available
+        if: steps.dockerhub.outputs.digest != ''
+        run: |
+          CURRENT_DIGEST=$(grep 'ezio22/argocd-node-app@' deployments/deployment.yml | cut -d '@' -f 2)
+          if [ "$CURRENT_DIGEST" != "${{ steps.dockerhub.outputs.digest }}" ]; then
+            sed -i "s|ezio22/argocd-node-app@${CURRENT_DIGEST}|ezio22/argocd-node-app@${{ steps.dockerhub.outputs.digest }}|" deployments/deployment.yml
+            git config user.name 'GitHub Actions'
+            git config user.email 'actions@github.com'
+            git add deployments/deployment.yml
+            git commit -m "Update Docker image digest to ${{ steps.dockerhub.outputs.digest }}"
+            git push
+          else
+            echo "No changes in image digest."
+      
+      
 
-    - name: Update Image Tag in Manifest
-      run: |
-        sed -i 's|ezio22/appname:[^"]*|ezio22/appname:${{ github.event.inputs.new_image_tag }}|' deployments/deployment.yaml
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-        git add deployments/deployment.yaml
-        git commit -m "Update Docker image tag to ${{ github.event.inputs.new_image_tag }}"
-        git push
-
-    - name: Notify Argo CD
-      run: |
-        # Assuming Argo CD CLI is setup
-        argocd app sync myapp --prune
