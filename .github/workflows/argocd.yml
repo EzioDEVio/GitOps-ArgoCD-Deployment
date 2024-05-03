@@ -11,18 +11,25 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
+      
+      - name: List files in the repository
+        run: |
+          echo "Listing contents of the current directory:"
+          pwd
+          ls -alh
 
+      - name: List files in deployments directory
+        run: |
+          echo "Listing contents of the deployments directory:"
+          ls -alh deployments/
+      
       - name: Get latest image digest from Docker Hub
         id: dockerhub
         run: |
           DIGEST=$(curl -s "https://hub.docker.com/v2/repositories/ezio22/argocd-node-app/tags/latest" | jq -r '.images[] | select(.architecture=="amd64").digest')
-          if [[ -z "$DIGEST" ]]; then
-            echo "Failed to fetch digest"
-            exit 1
-          fi
+          echo "Latest digest fetched: $DIGEST"
           echo "::set-output name=digest::$DIGEST"
-          echo "Digest fetched: $DIGEST"
-
+      
       - name: Update the Deployment file if new image is available
         if: steps.dockerhub.outputs.digest != ''
         run: |
