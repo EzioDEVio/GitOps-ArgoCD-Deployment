@@ -1,0 +1,30 @@
+
+name: Update Kubernetes Manifests
+
+on:
+  workflow_dispatch:
+    inputs:
+      new_image_tag:
+        description: 'The new Docker image tag'
+        required: true
+
+jobs:
+  update-manifest:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Update Image Tag in Manifest
+      run: |
+        sed -i 's|ezio22/appname:[^"]*|ezio22/appname:${{ github.event.inputs.new_image_tag }}|' deployments/deployment.yaml
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add deployments/deployment.yaml
+        git commit -m "Update Docker image tag to ${{ github.event.inputs.new_image_tag }}"
+        git push
+
+    - name: Notify Argo CD
+      run: |
+        # Assuming Argo CD CLI is setup
+        argocd app sync myapp --prune
