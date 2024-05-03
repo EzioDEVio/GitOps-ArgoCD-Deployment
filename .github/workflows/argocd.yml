@@ -1,9 +1,8 @@
-
 name: Auto-Update Deployment on Image Change
 
 on:
   schedule:
-    # Check every 5 minutes; 
+    # Check every 5 minutes; adjust as needed
     - cron: '*/5 * * * *'
 
 jobs:
@@ -12,18 +11,25 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
-      
+
       - name: Get latest image digest from Docker Hub
         id: dockerhub
         run: |
           DIGEST=$(curl -s "https://hub.docker.com/v2/repositories/ezio22/argocd-node-app/tags/latest" | jq -r '.images[] | select(.architecture=="amd64").digest')
+          if [[ -z "$DIGEST" ]]; then
+            echo "Failed to fetch digest"
+            exit 1
+          fi
           echo "::set-output name=digest::$DIGEST"
-      
+          echo "Digest fetched: $DIGEST"
+
       - name: Update the Deployment file if new image is available
         if: steps.dockerhub.outputs.digest != ''
         run: |
           CURRENT_DIGEST=$(grep 'ezio22/argocd-node-app@' deployments/deployment.yml | cut -d '@' -f 2)
+          echo "Current digest in deployment.yml: $CURRENT_DIGEST"
           if [ "$CURRENT_DIGEST" != "${{ steps.dockerhub.outputs.digest }}" ]; then
+            echo "Updating deployment.yml with new digest..."
             sed -i "s|ezio22/argocd-node-app@${CURRENT_DIGEST}|ezio22/argocd-node-app@${{ steps.dockerhub.outputs.digest }}|" deployments/deployment.yml
             git config user.name 'GitHub Actions'
             git config user.email 'actions@github.com'
@@ -32,6 +38,3 @@ jobs:
             git push
           else
             echo "No changes in image digest."
-      
-      
-
