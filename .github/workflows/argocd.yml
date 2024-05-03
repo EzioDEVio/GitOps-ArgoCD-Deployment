@@ -1,5 +1,5 @@
 
-name: Update Deployment Tag
+name: ArgoCD Auto-Update Deployment on Image Change
 
 on:
   schedule:
