@@ -1,43 +1,47 @@
-name: ArgoCD Auto-Update Deployment on Image Change
+name: Update Deployment Tag
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes
+    # This will run the workflow every 5 minutes. Adjust as needed.
+    - cron: '*/5 * * * *'
+  # Allows manual trigger from GitHub Actions tab.
+  workflow_dispatch:
 
 jobs:
   update-deployment:
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Check out the repository to access the deployment.yml file.
       - name: Checkout the repository
         uses: actions/checkout@v2
-      
-      - name: Display the content of deployment.yml
-        run: |
-          echo "Displaying the contents of deployment.yml:"
-          cat deployments/deployment.yml
 
-      - name: Get latest image tag from Docker Hub
-        id: dockertag
+      # Step 2: Display the current content of the deployment.yml file for debugging.
+      - name: Display the content of deployment.yml
+        run: cat deployments/deployment.yml
+
+      # Step 3: Extract the current tag from the deployment.yml file.
+      - name: Extract current tag
+        id: current_tag
         run: |
-          TAG=$(curl -s "https://hub.docker.com/v2/repositories/ezio22/argocd-node-app/tags" | jq -r '.results[0].name')
-          if [[ -z "$TAG" || "$TAG" == "null" ]]; then
-            echo "Failed to fetch tag, or tag is null."
-            exit 1
-          fi
-          echo "Latest tag fetched: $TAG"
-          echo "::set-output name=tag::$TAG"
-      
-      - name: Extract current tag and update if necessary.
-        run: |
+          echo "Extracting current tag from deployment.yml..."
           CURRENT_TAG=$(grep -o 'ezio22/argocd-node-app:[^ ]*' deployments/deployment.yml | cut -d ':' -f 2)
           echo "Current tag in deployment.yml: $CURRENT_TAG"
-          if [ "$CURRENT_TAG" != "${{ steps.dockertag.outputs.tag }}" ]; then
-            echo "Updating deployment.yml with new tag..."
-            sed -i "s|ezio22/argocd-node-app:$CURRENT_TAG|ezio22/argocd-node-app:${{ steps.dockertag.outputs.tag }}|" deployments/deployment.yml
-            git config user.name 'GitHub Actions'
-            git config user.email 'actions@github.com'
-            git add deployments/deployment.yml
-            git commit -m "Update Docker image tag to ${{ steps.dockertag.outputs.tag }}"
-            git push
-          else
-            echo "No changes in image tag."
+          echo "::set-output name=tag::$CURRENT_TAG"
+
+      # Step 4: Conditionally update the deployment.yml if the current tag is not 'latest'.
+      - name: Update the Deployment file if tag is not 'latest'
+        if: steps.current_tag.outputs.tag != 'latest'
+        run: |
+          echo "Current tag is not 'latest'. Updating tag..."
+          sed -i "s|ezio22/argocd-node-app:${{ steps.current_tag.outputs.tag }}|ezio22/argocd-node-app:latest|" deployments/deployment.yml
+          git config user.name 'GitHub Actions'
+          git config user.email 'actions@github.com'
+          git add deployments/deployment.yml
+          git commit -m "Update Docker image tag to latest"
+          git push
+        else:
+          echo "Current tag is 'latest'. No update needed."
+
+      # Step 5: Output the updated file content for verification.
+      - name: Display updated content of deployment.yml
+        run: cat deployments/deployment.yml
