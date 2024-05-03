@@ -3,7 +3,7 @@ name: ArgoCD Auto-Update Deployment on Image Change
 on:
   schedule:
     - cron: '*/5 * * * *'  # Every 5 minutes
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:  # Allows manual triggering.
 
 jobs:
   update-deployment:
