@@ -1,3 +1,4 @@
+
 name: Update Deployment Tag
 
 on:
@@ -14,7 +15,7 @@ jobs:
 
       - name: Display the content of deployment.yml
         run: |
-          echo "Current content of deployment.yml:"
+          echo "Displaying the content of deployment.yml:"
           cat deployments/deployment.yml
 
       - name: Check and update image tag if necessary
@@ -29,5 +30,5 @@ jobs:
             git add deployments/deployment.yml
             git commit -m "Update Docker image tag to latest"
             git push
-          else
-            echo "Current tag is 'latest'. No update needed."
+          fi
+          echo "Current tag is 'latest'. No update needed."
