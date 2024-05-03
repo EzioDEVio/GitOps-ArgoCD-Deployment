@@ -1,9 +1,9 @@
-name: ArgoCD Auto-Update Deployment on Image Change
+name: Update Deployment Tag
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes
-  workflow_dispatch:  # Allows manual triggering.
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
 jobs:
   update-deployment:
@@ -13,9 +13,11 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Display the content of deployment.yml
-        run: cat deployments/deployment.yml
+        run: |
+          echo "Current content of deployment.yml:"
+          cat deployments/deployment.yml
 
-      - name: Extract and update the deployment file if necessary
+      - name: Check and update image tag if necessary
         run: |
           CURRENT_TAG=$(grep -o 'ezio22/argocd-node-app:[^ ]*' deployments/deployment.yml | cut -d ':' -f 2)
           echo "Current tag in deployment.yml: $CURRENT_TAG"
