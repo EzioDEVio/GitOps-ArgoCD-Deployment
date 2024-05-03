@@ -1,5 +1,5 @@
 
-name: ArgoCD Auto-Update Deployment on Image Change
+name: GitOps with ArgoCD kubernetes Deployment 
 
 on:
   schedule:
