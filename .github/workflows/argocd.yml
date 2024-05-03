@@ -10,21 +10,16 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
-
-      - name: List files in the repository
+      
+      - name: List files in the deployments directory
         run: |
-          echo "Listing contents of the current directory:"
-          pwd
-          ls -alh
+          echo "Listing contents of the deployments directory:"
+          ls -alh deployments/
       
       - name: Get latest image digest from Docker Hub
         id: dockerhub
         run: |
           DIGEST=$(curl -s "https://hub.docker.com/v2/repositories/ezio22/argocd-node-app/tags/latest" | jq -r '.images[] | select(.architecture=="amd64").digest')
-          if [[ -z "$DIGEST" ]]; then
-            echo "Failed to fetch digest, or digest is null."
-            exit 1
-          fi
           echo "Latest digest fetched: $DIGEST"
           echo "::set-output name=digest::$DIGEST"
       
@@ -33,17 +28,13 @@ jobs:
         run: |
           CURRENT_DIGEST=$(grep -o 'ezio22/argocd-node-app@[a-z0-9]*' deployments/deployment.yml | cut -d '@' -f 2)
           echo "Current digest in deployment.yml: $CURRENT_DIGEST"
-          if [[ -z "$CURRENT_DIGEST" ]]; then
-            echo "No current digest found in deployment.yml. Please check file content."
-            exit 1
-          fi
           if [ "$CURRENT_DIGEST" != "${{ steps.dockerhub.outputs.digest }}" ]; then
             echo "Updating deployment.yml with new digest..."
             sed -i "s|ezio22/argocd-node-app@${CURRENT_DIGEST}|ezio22/argocd-node-app@${{ steps.dockerhub.outputs.digest }}|" deployments/deployment.yml
             git config user.name 'GitHub Actions'
             git config user.email 'actions@github.com'
             git add deployments/deployment.yml
-            git diff-index --quiet HEAD || git commit -m "Update Docker image digest to ${{ steps.dockerhub.outputs.digest }}"
+            git commit -m "Update Docker image digest to ${{ steps.dockerhub.outputs.digest }}"
             git push
           else
             echo "No changes in image digest."
