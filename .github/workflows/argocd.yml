@@ -1,9 +1,8 @@
-name: ArgoCD Auto-Update Deployment on Image Change.
+name: ArgoCD Auto-Update Deployment on Image Change
 
 on:
   schedule:
-    # Check every 5 minutes; adjust as needed
-    - cron: '*/5 * * * *'
+    - cron: '*/5 * * * *'  # Every 5 minutes
 
 jobs:
   update-deployment:
@@ -11,18 +10,12 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
-      
-      - name: List files in the repository
-        run: |
-          echo "Listing contents of the current directory:"
-          pwd
-          ls -alh
 
-      - name: List files in deployments directory
+      - name: List files in the deployments directory
         run: |
           echo "Listing contents of the deployments directory:"
           ls -alh deployments/
-      
+
       - name: Get latest image digest from Docker Hub
         id: dockerhub
         run: |
@@ -33,12 +26,15 @@ jobs:
           fi
           echo "Latest digest fetched: $DIGEST"
           echo "::set-output name=digest::$DIGEST"
-      
+
       - name: Update the Deployment file if new image is available
-        if: steps.dockerhub.outputs.digest != ''
         run: |
           CURRENT_DIGEST=$(grep -o 'ezio22/argocd-node-app@[a-z0-9]*' deployments/deployment.yml | cut -d '@' -f 2)
           echo "Current digest in deployment.yml: $CURRENT_DIGEST"
+          if [[ -z "$CURRENT_DIGEST" ]]; then
+            echo "No current digest found in deployment.yml."
+            exit 1
+          fi
           if [ "$CURRENT_DIGEST" != "${{ steps.dockerhub.outputs.digest }}" ]; then
             echo "Updating deployment.yml with new digest..."
             sed -i "s|ezio22/argocd-node-app@${CURRENT_DIGEST}|ezio22/argocd-node-app@${{ steps.dockerhub.outputs.digest }}|" deployments/deployment.yml
