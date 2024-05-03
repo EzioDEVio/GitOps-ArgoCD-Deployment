@@ -27,7 +27,7 @@ jobs:
           echo "Latest tag fetched: $TAG"
           echo "::set-output name=tag::$TAG"
       
-      - name: Extract current tag and update if necessary
+      - name: Extract current tag and update if necessary.
         run: |
           CURRENT_TAG=$(grep -o 'ezio22/argocd-node-app:[^ ]*' deployments/deployment.yml | cut -d ':' -f 2)
           echo "Current tag in deployment.yml: $CURRENT_TAG"
