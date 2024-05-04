@@ -3,7 +3,7 @@ name: Checkov Security Scan
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Set for weekly
+    - cron: '*/5 * * * *' # every 5 mins
   workflow_dispatch:
 
 jobs:

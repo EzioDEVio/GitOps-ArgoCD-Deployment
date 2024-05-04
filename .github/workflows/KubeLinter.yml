@@ -3,7 +3,7 @@ name: KubeLinter Scan
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Set for weekly
+    - cron: '*/5 * * * *' # Set for 5 mins
   workflow_dispatch:
 
 jobs:
