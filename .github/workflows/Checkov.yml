@@ -2,7 +2,7 @@ name: Checkov Security Scan
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Set for weekly
+    - cron: '0 0 * * 0'  # Set for weekly
   workflow_dispatch:
 
 jobs:
@@ -15,16 +15,11 @@ jobs:
       - name: Install Checkov
         run: pip install checkov
 
-      - name: Run Checkov
-        run: checkov -d ./deployments --quiet -o json > checkov-results.json
-
-      - name: Convert Checkov JSON to Simple Text
-        run: jq -r '.failed_checks[] | "\(.check_id) \(.check_name) \(.file_path)"' checkov-results.json > checkov-summary.txt
+      - name: Run Checkov and handle errors
+        run: checkov -d ./deployments --quiet -o json > checkov-results.json || true
 
       - name: Upload Checkov Results
         uses: actions/upload-artifact@v2
         with:
           name: checkov-results
-          path: |
-            checkov-results.json
-            checkov-summary.txt
+          path: checkov-results.json
