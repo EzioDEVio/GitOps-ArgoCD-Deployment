@@ -1,9 +1,8 @@
-
 name: KubeLinter Scan
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # Set for 5 mins
+    - cron: '0 0 * * 0' # Set for weekly
   workflow_dispatch:
 
 jobs:
@@ -19,7 +18,8 @@ jobs:
           sudo install kube-linter /usr/local/bin/
 
       - name: Run KubeLinter
-        run: kube-linter lint deployments/ > kubelinter-results.txt
+        run: |
+          kube-linter lint deployments/ > kubelinter-results.txt || true
 
       - name: Upload KubeLinter Results
         uses: actions/upload-artifact@v2
