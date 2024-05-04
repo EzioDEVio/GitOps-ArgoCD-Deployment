@@ -3,7 +3,7 @@ name: GitOps with ArgoCD kubernetes Deployment
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '0 0 * * 0' #I set it for weekly
   workflow_dispatch:
 
 jobs:
