@@ -1,0 +1,28 @@
+
+name: KubeLinter Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Set for weekly
+  workflow_dispatch:
+
+jobs:
+  kube-linter-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Install KubeLinter
+        run: |
+          curl -L "https://github.com/stackrox/kube-linter/releases/download/0.2.2/kube-linter-linux.tar.gz" | tar -xz
+          sudo install kube-linter /usr/local/bin/
+
+      - name: Run KubeLinter
+        run: kube-linter lint deployments/ > kubelinter-results.txt
+
+      - name: Upload KubeLinter Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: kube-linter-results
+          path: kubelinter-results.txt
