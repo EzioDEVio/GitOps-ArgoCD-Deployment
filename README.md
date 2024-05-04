@@ -148,6 +148,41 @@ Check the deployment status in Argo CD or by using kubectl:
 ```bash
 kubectl get all
 ```
+
+## Accessing the ArgoCD and the app
+
+# List current running pods
+```
+kubectl get pods -n argocd
+```
+
+# Login to argocd an access it in the browser
+```
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+# Open up the localhost on the browser           
+```
+https://localhost:8080
+```
+# The default user name is "admin" the password can be retrieved by using the following command:
+
+```
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode; echo
+```
+# accessing ArgoCD using the CLI
+```
+argocd login localhost:8080 --username admin --password <the password from the step above> --insecure
+```
+# Accessing the app you deployed in ArgoCD
+```
+minikube service myapp-service --url -n default
+```
+minikube service myapp-service --url -n default
+http://127.0.0.1:58325
+❗  Because you are using a Docker driver on windows, the terminal needs to be open to run it.
+
+The following url will be the app you deployed to ArgoCD: http://127.0.0.1:58325
+
 ## Troubleshooting
 
 # Application Not Accessible:
