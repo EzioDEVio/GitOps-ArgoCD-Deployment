@@ -1,4 +1,4 @@
-[![GitOps with ArgoCD kubernetes Deployment](https://github.com/EzioDEVio/GitOps-ArgoCD-Deployment/actions/workflows/argocd.yml/badge.svg)](https://github.com/EzioDEVio/GitOps-ArgoCD-Deployment/actions/workflows/argocd.yml)
+[![GitOps with ArgoCD kubernetes Deployment](https://github.com/EzioDEVio/GitOps-ArgoCD-Deployment/actions/workflows/argocd.yml/badge.svg)](https://github.com/EzioDEVio/GitOps-ArgoCD-Deployment/actions/workflows/argocd.yml)  [![KubeLinter Scan](https://github.com/EzioDEVio/GitOps-ArgoCD-Deployment/actions/workflows/KubeLinter.yml/badge.svg)](https://github.com/EzioDEVio/GitOps-ArgoCD-Deployment/actions/workflows/KubeLinter.yml) 
 
 # Deploying a Node.js App on Kubernetes with Argo CD 🚀
 
